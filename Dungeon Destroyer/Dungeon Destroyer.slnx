@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Dungeon Destroyer.Tests/Dungeon Destroyer.Tests.csproj" />
+  <Project Path="Dungeon Destroyer/Dungeon Destroyer.csproj" />
+</Solution>

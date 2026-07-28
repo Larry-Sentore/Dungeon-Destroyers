@@ -1,0 +1,18 @@
+## .NET / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+## MonoGame content pipeline build output
+Content/bin/
+Content/obj/
+
+## Test results
+TestResults/
+*.trx
+
+## OS junk
+.DS_Store
+Thumbs.db
