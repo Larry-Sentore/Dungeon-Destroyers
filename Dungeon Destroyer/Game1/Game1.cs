@@ -31,8 +31,8 @@ namespace Game1
         // Systems
         private readonly WeaponSystem weapons = new WeaponSystem();
         private readonly EnemySpawner spawner = new EnemySpawner();
+        private readonly PotionSpawner potionSpawner = new PotionSpawner();
 
-        private KeyboardState previousKeyboard;
         private int score;
 
         public Game1() : base("Dungeon", 1280, 720, false)
@@ -57,18 +57,9 @@ namespace Game1
 
             player = new Player(warriorTexture, new Vector2(300, 100));
 
-            potions.Add(new Potion
-            {
-                Position = new Vector2(500, 300),
-                SourceFrame = GameConstants.HealthPotionFrame,
-                HealAmount = 1,
-            });
-            potions.Add(new Potion
-            {
-                Position = new Vector2(560, 300),
-                SourceFrame = GameConstants.YellowPotionFrame,
-                ScoreValue = 100,
-            });
+            // Two starter potions; PotionSpawner adds more as the game runs.
+            potions.Add(Potion.Create(new Vector2(500, 300), isHealthPotion: true));
+            potions.Add(Potion.Create(new Vector2(560, 300), isHealthPotion: false));
 
             base.LoadContent();
         }
@@ -81,23 +72,23 @@ namespace Game1
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyboard.IsKeyDown(Keys.Escape))
                 Exit();
 
-            // --- Movement phase: everything relocates for this frame. ---
+            // Movement phase: everything relocates for this frame
             player.UpdateMovement(keyboard, deltaTime);
-            weapons.HandleInput(keyboard, previousKeyboard, player, deltaTime);
+            weapons.HandleInput(keyboard, player, deltaTime);
             weapons.UpdateBullets(deltaTime, GraphicsDevice.Viewport);
             spawner.Update(deltaTime, GraphicsDevice.Viewport, enemies);
+            potionSpawner.Update(deltaTime, GraphicsDevice.Viewport, potions);
 
             foreach (Enemy enemy in enemies)
                 enemy.Update(player.Bounds.Center.ToVector2(), deltaTime);
 
-            // --- Resolution phase: damage is applied to final positions. ---
+            // damage is applied to final positions
             score += CombatSystem.ResolvePotionPickups(player, potions);
             score += CombatSystem.ResolveBulletHits(weapons.Bullets, enemies);
             CombatSystem.ResolveEnemyContact(player, enemies);
 
             player.UpdateAnimation(deltaTime);
 
-            previousKeyboard = keyboard;
             base.Update(gameTime);
         }
 

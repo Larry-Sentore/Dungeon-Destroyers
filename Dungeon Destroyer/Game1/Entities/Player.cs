@@ -58,6 +58,12 @@ namespace Game1.Entities
         /// <summary>Restarts the shoot animation, called when a shot is actually fired.</summary>
         public void TriggerShootAnimation() => ShootTimer = GameConstants.ShootAnimDuration;
 
+        /// <summary>
+        /// Overrides facing, used when shooting so the sprite turns to match the shot
+        /// rather than whichever way it last walked.
+        /// </summary>
+        public void FaceLeft(bool faceLeft) => FacingLeft = faceLeft;
+
         /// <summary>Applies damage, floored at 0.</summary>
         public void TakeDamage(int amount)
         {

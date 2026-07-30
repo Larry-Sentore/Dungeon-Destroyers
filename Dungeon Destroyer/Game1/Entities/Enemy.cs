@@ -18,8 +18,13 @@ namespace Game1.Entities
         public float Scale;
         public int ScoreValue;
 
+
         private int animFrame;
         private float animTimer;
+        private float attackCooldown;
+
+        public bool CanAttack => attackCooldown <= 0f;
+        public void RegisterAttack() => attackCooldown = GameConstants.EnemyAttackCooldown;
 
         /// <summary>Builds an enemy of the given kind with that kind's stats.</summary>
         public static Enemy Create(EnemyKind kind, Vector2 position)
@@ -61,8 +66,8 @@ namespace Game1.Entities
         /// <summary>Walks straight at the target and advances the walk animation.</summary>
         public void Update(Vector2 target, float deltaTime)
         {
-            // Normalizing gives a pure direction, so speed stays constant regardless
-            // of how far away the player is.
+            // Normalizing gives a pure direction, so speed stays constant 
+
             Vector2 toTarget = target - Center;
             if (toTarget != Vector2.Zero)
             {
@@ -76,6 +81,9 @@ namespace Game1.Entities
                 animTimer -= GameConstants.EnemyAnimFrameDuration;
                 animFrame = (animFrame + 1) % GameConstants.PumpkinFrameCount;
             }
+
+            if (attackCooldown > 0f)
+                attackCooldown -= deltaTime;
         }
 
         /// <summary>Draws the enemy's current walk-animation frame.</summary>

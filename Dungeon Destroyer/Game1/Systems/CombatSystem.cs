@@ -11,11 +11,8 @@ namespace Game1.Systems
     /// </summary>
     public static class CombatSystem
     {
-        /// <summary>
-        /// Tests every bullet against every enemy. A hit removes the bullet and deals
-        /// <see cref="GameConstants.BulletDamage"/>; an enemy reduced to 0 health dies
-        /// and awards score.
-        /// </summary>
+
+
         /// <returns>Score earned from enemies killed this frame.</returns>
         public static int ResolveBulletHits(List<Bullet> bullets, List<Enemy> enemies)
         {
@@ -63,7 +60,11 @@ namespace Game1.Systems
                 if (!playerBounds.Intersects(enemy.Bounds))
                     continue;
 
+                if (!enemy.CanAttack)
+                    continue;          // still touching, but this one just hit you
+
                 player.TakeDamage(enemy.ContactDamage);
+                enemy.RegisterAttack();
                 break;
             }
         }
@@ -78,14 +79,18 @@ namespace Game1.Systems
             int scoreEarned = 0;
             Rectangle playerBounds = player.Bounds;
 
-            foreach (Potion potion in potions)
+            // Backwards so removing an item doesn't shift the indices still to be
+            // checked. Collected potions are removed rather than just flagged, so the
+            // list doesn't grow without bound while the spawner keeps adding to it.
+            for (int i = potions.Count - 1; i >= 0; i--)
             {
-                if (potion.Collected || !playerBounds.Intersects(potion.Bounds))
+                Potion potion = potions[i];
+                if (!playerBounds.Intersects(potion.Bounds))
                     continue;
 
-                potion.Collected = true;
                 player.Heal(potion.HealAmount);
                 scoreEarned += potion.ScoreValue;
+                potions.RemoveAt(i);
             }
 
             return scoreEarned;

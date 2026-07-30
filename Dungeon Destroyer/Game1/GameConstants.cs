@@ -3,8 +3,7 @@ using Microsoft.Xna.Framework;
 namespace Game1
 {
     /// <summary>
-    /// Every tuning value and sprite-sheet coordinate in one place, so gameplay can be
-    /// rebalanced without hunting through the entity and system classes.
+    /// Every tuning value and sprite-sheet
     /// </summary>
     internal static class GameConstants
     {
@@ -24,8 +23,7 @@ namespace Game1
         public const float AnimFrameDuration = 0.12f;   // seconds each frame is shown
         public const float ShootAnimDuration = WarriorShootFrameCount * AnimFrameDuration;
 
-        // The character art only fills the middle of its 32x32 cell, so the hitbox is
-        // inset to stop collisions triggering from a visible distance away.
+        // The character art only fills the middle of its 32x32 cell, so the hitbox is inset to stop collisions triggering from a visible distance away.
         public const int WarriorArtOffsetX = 10;
         public const int WarriorArtOffsetY = 8;
         public const int WarriorArtWidth = 12;
@@ -55,6 +53,7 @@ namespace Game1
         public const int BigEnemyScore = 25;
 
         public const float EnemySpawnInterval = 2f;  // seconds between spawns
+        public const float EnemyAttackCooldown = 1f; // seconds between an enemy's hits
 
         // ------------------------------------------------------------------
         // Shooting
@@ -79,6 +78,16 @@ namespace Game1
         public static readonly Rectangle YellowPotionFrame = new Rectangle(336, 336, 16, 16);
 
         public const float PotionScale = 3f;
+        public const float PotionSpawnInterval = 5f;  // seconds between spawns
+
+        public const int HealthPotionHeal = 1;        // hearts restored
+        public const int YellowPotionScore = 100;     // points awarded
+
+        // Potions don't move, so unlike enemies they must spawn *inside* the play
+        // area or the player could never reach them. These margins keep them clear
+        // of the screen edges and the HUD strip along the top.
+        public const int PotionSpawnMargin = 80;
+        public const int PotionSpawnTopMargin = 140;
 
         // ------------------------------------------------------------------
         // HUD layout

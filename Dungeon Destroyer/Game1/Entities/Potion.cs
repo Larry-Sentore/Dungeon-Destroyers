@@ -13,7 +13,20 @@ namespace Game1.Entities
         public Rectangle SourceFrame;
         public int HealAmount;
         public int ScoreValue;
-        public bool Collected;
+
+        /// <summary>
+        /// Builds a potion of one of the two kinds. Health potions restore hearts,
+        /// yellow potions award score - a potion never does both.
+        /// </summary>
+        public static Potion Create(Vector2 position, bool isHealthPotion) => new Potion
+        {
+            Position = position,
+            SourceFrame = isHealthPotion
+                ? GameConstants.HealthPotionFrame
+                : GameConstants.YellowPotionFrame,
+            HealAmount = isHealthPotion ? GameConstants.HealthPotionHeal : 0,
+            ScoreValue = isHealthPotion ? 0 : GameConstants.YellowPotionScore,
+        };
 
         /// <summary>Screen-space bounds of this potion, used for pickup collision.</summary>
         public Rectangle Bounds => new Rectangle(
@@ -24,9 +37,6 @@ namespace Game1.Entities
 
         public void Draw(SpriteBatch spriteBatch, Texture2D texture)
         {
-            if (Collected)
-                return;
-
             spriteBatch.Draw(
                 texture,
                 Position,
