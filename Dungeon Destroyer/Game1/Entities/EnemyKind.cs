@@ -1,14 +1,12 @@
 namespace Game1.Entities
 {
-    /// <summary>
-    /// The enemy variants. Each kind's stats are applied in <see cref="Enemy.Create"/>.
-    /// </summary>
+    /// <summary>The two enemy types. Stats are applied in Enemy.Create.</summary>
     public enum EnemyKind
     {
-        /// <summary>Fast and fragile: 2 health, deals 1 damage on contact.</summary>
+        /// <summary>Fast and weak: 2 health, deals 1 damage.</summary>
         Small,
 
-        /// <summary>Slow and tanky: 5 health, deals 3 damage on contact.</summary>
+        /// <summary>Slow and tough: 5 health, deals 3 damage.</summary>
         Big,
     }
 }

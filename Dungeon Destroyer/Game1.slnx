@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="Game1/Game1.csproj" />
+  <Project Path="MonoGameLibrary/MonoGameLibrary.csproj" />
+  <Project Path="Game1.Tests/Game1.Tests.csproj" />
 </Solution>

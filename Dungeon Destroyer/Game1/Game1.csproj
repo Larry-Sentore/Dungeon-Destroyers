@@ -32,4 +32,8 @@
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
   </ItemGroup>
+  <!-- Lets the test project read the internal GameConstants values. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Game1.Tests" />
+  </ItemGroup>
 </Project>

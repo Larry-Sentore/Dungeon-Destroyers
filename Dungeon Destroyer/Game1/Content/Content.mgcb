@@ -13,11 +13,25 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin Background/atlas_floor-16x16[1].png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/processorParam:Version=3.8.5.0
+/build:Background/atlas_floor-16x16[1].png
+
 #begin Fonts/DefaultFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Color
+/processorParam:Version=3.8.5.0
 /build:Fonts/DefaultFont.spritefont
 
 #begin Sprites/0x72_DungeonTilesetII_v1.7[1].png

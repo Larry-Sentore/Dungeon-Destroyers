@@ -7,9 +7,7 @@ using Game1.Entities;
 
 namespace Game1.Systems
 {
-    /// <summary>
-    /// Drops a new potion on a fixed timer at a random reachable spot on screen.
-    /// </summary>
+    /// <summary>Drops a new potion on a timer at a random spot on screen.</summary>
     public class PotionSpawner
     {
         private readonly Random random = new Random();
@@ -17,20 +15,21 @@ namespace Game1.Systems
 
         public void Update(float deltaTime, Viewport viewport, List<Potion> potions)
         {
+            // Counts down and spawns when the timer hits zero.
             spawnTimer -= deltaTime;
             if (spawnTimer > 0f)
                 return;
 
             spawnTimer = GameConstants.PotionSpawnInterval;
 
-            // Even split between the two kinds.
+            // Even split between the two potion types.
             bool isHealthPotion = random.Next(2) == 0;
             potions.Add(Potion.Create(GetRandomPosition(viewport), isHealthPotion));
         }
 
         /// <summary>
-        /// Picks a random point inside the play area. Unlike enemies, potions never
-        /// move, so spawning one off-screen would put it permanently out of reach.
+        /// Picks a random point inside the play area. Potions don't move, so spawning
+        /// one off-screen would make it impossible to reach.
         /// </summary>
         private Vector2 GetRandomPosition(Viewport viewport)
         {

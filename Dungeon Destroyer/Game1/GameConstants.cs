@@ -3,7 +3,8 @@ using Microsoft.Xna.Framework;
 namespace Game1
 {
     /// <summary>
-    /// Every tuning value and sprite-sheet
+    /// All the game's numbers in one place: speeds, damage, health, scores, and the
+    /// sprite sheet coordinates. Keeps balancing separate from the game logic.
     /// </summary>
     internal static class GameConstants
     {
@@ -55,6 +56,13 @@ namespace Game1
         public const float EnemySpawnInterval = 2f;  // seconds between spawns
         public const float EnemyAttackCooldown = 1f; // seconds between an enemy's hits
 
+        // Enemy senses and steering.
+        public const float EnemyDetectionRadius = 400f;    // distance it can spot the player
+        public const float EnemyFieldOfViewDegrees = 90f;  // width of its vision cone
+        public const float EnemyTurnSpeed = 3f;            // radians per second it can turn
+        public const float EnemyChargeMultiplier = 1.6f;   // speed boost once it spots you
+        public const float EnemyFlashFadeSpeed = 5f;       // how fast the damage tint fades
+
         // ------------------------------------------------------------------
         // Shooting
         // ------------------------------------------------------------------
@@ -89,6 +97,10 @@ namespace Game1
         public const int PotionSpawnMargin = 80;
         public const int PotionSpawnTopMargin = 140;
 
+        // Potions drift toward the player once they get close enough.
+        public const float PotionMagnetRadius = 200f;  // distance that pulls them in
+        public const float PotionMagnetSpeed = 3f;     // how quickly they ease across
+
         // ------------------------------------------------------------------
         // HUD layout
         // ------------------------------------------------------------------
@@ -96,5 +108,13 @@ namespace Game1
         public const int HeartSize = 16;
         public const int HeartSpacing = 4;
         public const int HudMargin = 20;
+
+        // How quickly the hearts and score catch up to their real values.
+        public const float HudLerpSpeed = 6f;
+
+        // ------------------------------------------------------------------
+        // Menu screens
+        // ------------------------------------------------------------------
+        public const float TitleScale = 2.5f;      // how much bigger the title text is
     }
 }

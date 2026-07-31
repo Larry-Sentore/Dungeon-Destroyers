@@ -7,23 +7,16 @@ using Game1.Entities;
 namespace Game1.Systems
 {
     /// <summary>
-    /// Owns the player's projectiles: fire input and cooldown, bullet movement, and
-    /// culling bullets that leave the screen.
+    /// Handles the player's shooting: aim input, fire rate, and moving the bullets.
     /// </summary>
     public class WeaponSystem
     {
-        /// <summary>
-        /// Exposed for <see cref="CombatSystem"/>, which removes bullets as they hit enemies.
-        /// </summary>
+        /// <summary>The live bullets. CombatSystem removes them as they hit enemies.</summary>
         public List<Bullet> Bullets { get; } = new List<Bullet>();
 
         private float fireCooldownTimer;
 
-        /// <summary>
-        /// Reads the arrow keys as an aim direction and fires in that direction, subject
-        /// to the cooldown. Also ticks the player's shoot animation timer, keeping weapon
-        /// timing and animation timing in step.
-        /// </summary>
+        /// <summary>Reads the arrow keys as an aim direction and fires that way.</summary>
         public void HandleInput(KeyboardState keyboard, Player player, float deltaTime)
         {
             fireCooldownTimer -= deltaTime;
@@ -31,8 +24,7 @@ namespace Game1.Systems
 
             Vector2 aim = ReadAimDirection(keyboard);
 
-            // Holding an arrow key fires repeatedly at the cooldown rate, so there's no
-            // edge-trigger here - the cooldown alone paces the shots.
+            // Holding an arrow fires repeatedly; the cooldown sets the fire rate.
             if (aim == Vector2.Zero || fireCooldownTimer > 0f)
                 return;
 
@@ -40,15 +32,12 @@ namespace Game1.Systems
             fireCooldownTimer = GameConstants.FireCooldown;
             player.TriggerShootAnimation();
 
-            // Face the way we shot, so the sprite doesn't fire out of its own back.
+            // Turn the sprite to face the way it shot.
             if (aim.X < 0) player.FaceLeft(true);
             else if (aim.X > 0) player.FaceLeft(false);
         }
 
-        /// <summary>
-        /// Turns the arrow keys into a direction. Opposite keys cancel out, and diagonals
-        /// are normalized so they aren't faster than the cardinal directions.
-        /// </summary>
+        /// <summary>Builds an aim vector from the arrow keys.</summary>
         private static Vector2 ReadAimDirection(KeyboardState keyboard)
         {
             Vector2 aim = Vector2.Zero;
@@ -58,28 +47,28 @@ namespace Game1.Systems
             if (keyboard.IsKeyDown(Keys.Left)) aim.X -= 1;
             if (keyboard.IsKeyDown(Keys.Right)) aim.X += 1;
 
+            // Opposite keys cancel out. Normalising stops diagonal shots being faster.
             if (aim != Vector2.Zero)
                 aim.Normalize();
 
             return aim;
         }
 
-        /// <summary>Spawns a bullet at the player's center, travelling along the aim direction.</summary>
+        /// <summary>Vectors: bullet velocity = aim direction x bullet speed.</summary>
         private void Fire(Player player, Vector2 aimDirection)
         {
             Bullets.Add(new Bullet(player.Center, aimDirection * GameConstants.BulletSpeed));
         }
 
-        /// <summary>Moves active bullets and discards any that have left the screen.</summary>
+        /// <summary>Moves the bullets and deletes any that leave the screen.</summary>
         public void UpdateBullets(float deltaTime, Viewport viewport)
         {
-            // Backwards so removing an item doesn't shift the indices still to be checked.
+            // Backwards so removing an item doesn't skip the next one.
             for (int i = Bullets.Count - 1; i >= 0; i--)
             {
                 Bullets[i].Update(deltaTime);
 
-                // Cull on both axes - bullets can now leave through the top and bottom
-                // as well as the sides.
+                // Checks all four edges, since bullets can now travel up and down.
                 Vector2 position = Bullets[i].Position;
                 if (position.X < 0 || position.X > viewport.Width ||
                     position.Y < 0 || position.Y > viewport.Height)
@@ -89,6 +78,7 @@ namespace Game1.Systems
             }
         }
 
+        /// <summary>Rendering every live bullet.</summary>
         public void Draw(SpriteBatch spriteBatch, Texture2D pixel)
         {
             foreach (Bullet bullet in Bullets)

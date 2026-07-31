@@ -6,8 +6,7 @@ using Microsoft.Xna.Framework.Input;
 namespace Game1.Entities
 {
     /// <summary>
-    /// The player-controlled warrior: WASD movement, facing, the Idle/Run/Shoot
-    /// animation state machine, health, and the post-hit invulnerability window.
+    /// The player character: WASD movement, facing direction, animation, and health.
     /// </summary>
     public class Player
     {
@@ -24,7 +23,7 @@ namespace Game1.Entities
         public bool FacingLeft { get; private set; }
         public int Health { get; private set; } = GameConstants.MaxHealth;
 
-        /// <summary>Seconds remaining of the shoot animation. Overrides Run/Idle while &gt; 0.</summary>
+        /// <summary>Time left on the shoot animation. Overrides Run/Idle while above 0.</summary>
         public float ShootTimer { get; private set; }
 
         public Player(Texture2D texture, Vector2 startPosition)
@@ -34,8 +33,8 @@ namespace Game1.Entities
         }
 
         /// <summary>
-        /// Screen-space hitbox, inset to the character art rather than the full scaled
-        /// frame so collisions line up with what the player can actually see.
+        /// Using algebra to build the hitbox. It's inset to the character art, because
+        /// the drawing only fills the middle of its 32x32 sprite cell.
         /// </summary>
         public Rectangle Bounds => new Rectangle(
             (int)(Position.X + GameConstants.WarriorArtOffsetX * GameConstants.WarriorScale),
@@ -43,42 +42,40 @@ namespace Game1.Entities
             (int)(GameConstants.WarriorArtWidth * GameConstants.WarriorScale),
             (int)(GameConstants.WarriorArtHeight * GameConstants.WarriorScale));
 
-        /// <summary>Center of the full sprite frame - where bullets spawn from.</summary>
+        /// <summary>Using algebra to find the centre, where bullets spawn from.</summary>
         public Vector2 Center => Position + new Vector2(
             GameConstants.WarriorFrameSize, GameConstants.WarriorFrameSize)
             * GameConstants.WarriorScale / 2f;
 
-        /// <summary>Counts down the shoot animation.</summary>
+        /// <summary>Counts down the shoot animation timer.</summary>
         public void TickShootTimer(float deltaTime)
         {
             if (ShootTimer > 0f)
                 ShootTimer -= deltaTime;
         }
 
-        /// <summary>Restarts the shoot animation, called when a shot is actually fired.</summary>
+        /// <summary>Restarts the shoot animation when a shot is fired.</summary>
         public void TriggerShootAnimation() => ShootTimer = GameConstants.ShootAnimDuration;
 
-        /// <summary>
-        /// Overrides facing, used when shooting so the sprite turns to match the shot
-        /// rather than whichever way it last walked.
-        /// </summary>
+        /// <summary>Turns the sprite to match the direction it shot in.</summary>
         public void FaceLeft(bool faceLeft) => FacingLeft = faceLeft;
 
-        /// <summary>Applies damage, floored at 0.</summary>
+        /// <summary>Using algebra to work out health remaining, never below 0.</summary>
         public void TakeDamage(int amount)
         {
             Health = Math.Max(Health - amount, 0);
         }
 
-        /// <summary>Restores health, capped at <see cref="GameConstants.MaxHealth"/>.</summary>
+        /// <summary>Using algebra to restore health, capped at the maximum.</summary>
         public void Heal(int amount)
         {
             Health = Math.Min(Health + amount, GameConstants.MaxHealth);
         }
 
-        /// <summary>Reads WASD input, moves the warrior, and tracks left/right facing.</summary>
+        /// <summary>Reads WASD and moves the player using vectors.</summary>
         public void UpdateMovement(KeyboardState keyboard, float deltaTime)
         {
+            // Builds a direction vector from the keys pressed.
             Vector2 direction = Vector2.Zero;
 
             if (keyboard.IsKeyDown(Keys.W)) direction.Y -= 1;
@@ -90,20 +87,17 @@ namespace Game1.Entities
             if (!isMoving)
                 return;
 
-            // Normalize so diagonal movement isn't faster than cardinal movement.
+            // Normalising the vector keeps diagonal movement the same speed as straight.
             direction.Normalize();
             Position += direction * GameConstants.WarriorSpeed * deltaTime;
 
-            // Only flip facing on horizontal input; ignore vertical-only movement so
-            // the sprite doesn't snap back to "facing right" while moving up/down.
+            // Only flip facing on left/right input, so moving up or down doesn't
+            // reset the sprite to facing right.
             if (direction.X < 0) FacingLeft = true;
             else if (direction.X > 0) FacingLeft = false;
         }
 
-        /// <summary>
-        /// Picks the current animation state (Shoot takes priority over Run/Idle) and
-        /// advances the frame timer.
-        /// </summary>
+        /// <summary>Chooses the animation (Shoot beats Run beats Idle) and advances frames.</summary>
         public void UpdateAnimation(float deltaTime)
         {
             AnimState newState =
@@ -111,8 +105,7 @@ namespace Game1.Entities
                 isMoving ? AnimState.Run :
                 AnimState.Idle;
 
-            // Restart the frame counter whenever the state changes so, e.g., every shot
-            // plays its animation from frame 0 instead of resuming mid-cycle.
+            // Restart from frame 0 whenever the animation changes.
             if (newState != animState)
             {
                 animState = newState;
@@ -124,7 +117,7 @@ namespace Game1.Entities
             {
                 AnimState.Run => GameConstants.WarriorRunFrameCount,
                 AnimState.Shoot => GameConstants.WarriorShootFrameCount,
-                _ => 1, // Idle only has a single frame in the sheet.
+                _ => 1, // Idle is a single frame.
             };
 
             if (frameCount <= 1)
@@ -138,7 +131,7 @@ namespace Game1.Entities
             animFrame = (animFrame + 1) % frameCount;
         }
 
-        /// <summary>Maps the current animation state/frame to a rectangle within the sprite sheet.</summary>
+        /// <summary>Algebra: picks the frame out of the sprite sheet grid (column x row).</summary>
         private Rectangle GetSourceRectangle()
         {
             int row = animState switch
@@ -155,11 +148,11 @@ namespace Game1.Entities
                 GameConstants.WarriorFrameSize);
         }
 
-        /// <summary>Draws the warrior using its current animation frame, flipped when facing left.</summary>
+        /// <summary>Rendering the player sprite, flipped when facing left.</summary>
         public void Draw(SpriteBatch spriteBatch)
         {
-            // Origin at the frame's center so flipping mirrors the sprite in place
-            // instead of shifting it sideways by a frame width.
+            // Drawing from the centre so flipping mirrors in place instead of
+            // shifting the sprite sideways.
             Vector2 origin = new Vector2(
                 GameConstants.WarriorFrameSize / 2f, GameConstants.WarriorFrameSize / 2f);
             Vector2 drawPosition = Position + origin * GameConstants.WarriorScale;

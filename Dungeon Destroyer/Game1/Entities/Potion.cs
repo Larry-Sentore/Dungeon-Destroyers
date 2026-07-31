@@ -1,12 +1,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Game1.Maths;
 
 namespace Game1.Entities
 {
-    /// <summary>
-    /// A world pickup. Position and source frame live here so drawing and collision
-    /// always agree, instead of repeating the same coordinates in two places.
-    /// </summary>
+    /// <summary>A potion the player can pick up by walking over it.</summary>
     public class Potion
     {
         public Vector2 Position;
@@ -15,8 +13,8 @@ namespace Game1.Entities
         public int ScoreValue;
 
         /// <summary>
-        /// Builds a potion of one of the two kinds. Health potions restore hearts,
-        /// yellow potions award score - a potion never does both.
+        /// Creates one of the two potion types. Health potions restore hearts,
+        /// yellow potions give score - never both.
         /// </summary>
         public static Potion Create(Vector2 position, bool isHealthPotion) => new Potion
         {
@@ -28,13 +26,37 @@ namespace Game1.Entities
             ScoreValue = isHealthPotion ? 0 : GameConstants.YellowPotionScore,
         };
 
-        /// <summary>Screen-space bounds of this potion, used for pickup collision.</summary>
+        /// <summary>Using algebra to size the pickup hitbox: frame size x scale.</summary>
         public Rectangle Bounds => new Rectangle(
             (int)Position.X,
             (int)Position.Y,
             (int)(SourceFrame.Width * GameConstants.PotionScale),
             (int)(SourceFrame.Height * GameConstants.PotionScale));
 
+        /// <summary>Using algebra to find the centre: position + half the size.</summary>
+        public Vector2 Center => Position + HalfSize;
+
+        /// <summary>Half the drawn size, used to line the potion up on the player.</summary>
+        private Vector2 HalfSize => new Vector2(SourceFrame.Width, SourceFrame.Height)
+            * GameConstants.PotionScale / 2f;
+
+        /// <summary>
+        /// Pulls the potion toward the player once they are close enough.
+        /// </summary>
+        public void Update(Vector2 playerCenter, float deltaTime)
+        {
+            // Distance: only potions inside the magnet radius get pulled in.
+            if (MathUtils.Distance(Center, playerCenter) > GameConstants.PotionMagnetRadius)
+                return;
+
+            // Lerp: eases the potion toward the player instead of snapping across.
+            Position = MathUtils.LerpPosition(
+                Position,
+                playerCenter - HalfSize,
+                GameConstants.PotionMagnetSpeed * deltaTime);
+        }
+
+        /// <summary>Rendering the potion sprite.</summary>
         public void Draw(SpriteBatch spriteBatch, Texture2D texture)
         {
             spriteBatch.Draw(
