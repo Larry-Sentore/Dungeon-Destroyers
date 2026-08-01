@@ -1,139 +1,161 @@
-# Dungeon Destroyer — Arena Defender
+# Dungeon Destroyers
 
-A 2D top-down survival game built with C# and MonoGame. Survive endless waves of
-enemies, collect power-ups, and rack up the highest score you can before your
-lives run out — or survive three minutes to win outright.
+A 2D top-down arcade survival shooter built with C# and MonoGame. You play a
+warrior trapped in a dungeon while pumpkin enemies pour in from every edge of
+the screen. Shoot them down, grab potions, and score as many points as you can
+before your ten hearts run out.
 
-This project was built for the MonoGame module capstone assignment and
-demonstrates object-oriented design, SOLID principles, and the mathematics of
-game development (distance, vectors, dot product, cross product and linear
-interpolation) in a fully playable game.
+Built for the MonoGame module capstone assignment. It demonstrates
+object-oriented design, separation of game logic from rendering, and the
+mathematics of game development — distance, vectors, dot product, cross product
+and linear interpolation — in a fully playable game backed by unit tests.
 
 ## Description
 
-You control a lone defender pinned in a fixed arena. Enemies spawn from
-outside the screen edges and close in from every direction; three enemy
-archetypes behave differently:
+Enemies spawn every two seconds from a random screen edge and hunt you down.
+There are two types, and the difference between them is the core of the
+difficulty:
 
-- **Standard** — balanced speed, health and damage.
-- **Fast** — quick and dangerous up close, but dies in a couple of hits.
-- **Tank** — slow, but soaks up damage and hits hard on contact.
+| Enemy | Health | Contact damage | Speed | Score |
+|---|---|---|---|---|
+| **Small** | 2 | 1 heart | 90 px/s | 10 |
+| **Big** | 5 | 3 hearts | 55 px/s | 25 |
 
-Enemies only chase you once you're inside their detection radius *and* their
-forward field of view (a dot-product check) — sneak past their flanks and
-they'll keep patrolling. While hunting, they turn to face you using a
-cross-product-driven rotation.
+Big enemies are tougher and hit far harder, but they are slow enough to run
+away from. Small ones die quickly but close the distance fast.
 
-Difficulty ramps up continuously the longer you survive: enemies spawn more
-often and tougher archetypes become more common. Four power-ups spawn
-periodically around the arena: **Health**, **Speed**, **Shield** and **Rapid
-Fire**. Walking into one collects it — and so does shooting one, if you'd
-rather snipe it from a distance.
+Enemies do not home in on you blindly. Each one has a **facing direction** and
+only notices you when you are both within its detection radius (400 pixels) and
+inside the 90-degree cone in front of it — a dot product check. Once alerted, it
+speeds up and charges. Because it turns using a cross product, it rotates
+gradually rather than snapping around, so enemies visibly curve toward you and
+can be flanked.
 
-Score comes from three sources: killing enemies (tougher kills are worth
-more), collecting power-ups, and simply surviving each second.
+Potions drop every five seconds somewhere in the play area and drift toward you
+once you are close enough:
+
+- **Red potion** — restores one heart.
+- **Yellow potion** — worth 100 points.
+
+Score comes from destroying enemies and collecting yellow potions. When your
+health reaches zero the run ends and your final score is shown.
 
 ## How to Play
 
 | Action | Input |
 |---|---|
-| Move | `W`/`A`/`S`/`D` or Arrow Keys |
-| Shoot (aims at your cursor) | Left Mouse Button or `Space` |
-| Pause / Quit | `Esc` |
+| Move | `W` `A` `S` `D` |
+| Shoot | Arrow keys — `↑` `↓` `←` `→` |
+| Start / Restart | `Enter` |
+| Quit | `Esc` |
 
-Click **PLAY** on the title screen to begin. If you die and still have lives
-left, you respawn at full health with a moment of invulnerability. Run out of
-lives and it's **Game Over**; survive 3 minutes and you get **Victory**. Either
-way, click **PLAY AGAIN** to start a fresh run.
+Movement and shooting are on **separate keys**, so you can retreat in one
+direction while firing in another. Holding an arrow key fires continuously at a
+fixed rate; you do not need to press it repeatedly.
+
+Press `Enter` on the title screen to begin. Each bullet deals 1 damage, so
+small enemies take two shots and big ones take five. If an enemy touches you it
+damages you, then goes on a one-second cooldown before it can hit you again.
+
+When your hearts run out you get the **Game Over** screen with your final
+score, and the game world stays visible behind it. Press `Enter` to start a
+completely fresh run.
 
 ## How to Run
 
 ### Prerequisites
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
-- MonoGame's content tooling is restored automatically via NuGet
-  (`MonoGame.Content.Builder.Task`) — no separate MGCB install is required.
 
 ### Run the game
 
+From the solution folder:
+
 ```bash
-cd "Dungeon Destroyer/Dungeon Destroyer"
-dotnet run
+cd "Dungeon Destroyer"
+dotnet tool restore
+dotnet run --project Game1
 ```
 
-Or open `Dungeon Destroyer/Dungeon Destroyer.slnx` in Visual Studio 2022 (or
-Rider / VS Code) and run the `Dungeon Destroyer` project.
+`dotnet tool restore` installs the MonoGame Content Builder (`dotnet-mgcb`),
+which compiles the sprite sheets and font into the format the game loads at
+runtime. It is defined in `.config/dotnet-tools.json` and only needs running
+once per clone — but if you skip it, the build fails with `MSB3073` because
+`mgcb` cannot be found.
+
+Alternatively, open `Dungeon Destroyer/Game1.slnx` in Visual Studio 2022, Rider
+or VS Code and run the `Game1` project.
 
 ### Run the unit tests
 
 ```bash
-cd "Dungeon Destroyer/Dungeon Destroyer.Tests"
-dotnet test
+cd "Dungeon Destroyer"
+dotnet test Game1.slnx
 ```
 
-or `dotnet test` from the solution folder to run every test project.
+All 10 tests should pass in under a second.
 
 ## Project Structure
 
 ```
 Dungeon Destroyer/
-├── Dungeon Destroyer.slnx              Solution file (game + tests)
-├── Dungeon Destroyer/                  Game project
-│   ├── Game1.cs                        Entry point / state machine / draw loop
-│   ├── Core/                           Constants and engine-agnostic math helpers
-│   ├── Interfaces/                     IDamageable, IMovable, ICollidable
-│   ├── Entities/                       Entity base, Player, Projectile
-│   │   ├── Enemies/                    Enemy base + Standard/Fast/Tank
-│   │   └── PowerUps/                   PowerUp base + Health/Speed/Shield/RapidFire
-│   ├── Systems/                        Spawning, collision, combat, scoring, difficulty
-│   ├── UI/                             Start screen, HUD, Game Over/Victory screen
-│   └── Content/                        Content.mgcb + DefaultFont.spritefont
-└── Dungeon Destroyer.Tests/            NUnit test project (40+ tests)
+├── Game1.slnx                      Solution: game, library, tests
+├── .config/dotnet-tools.json       MGCB content tool manifest
+│
+├── Game1/                          The game
+│   ├── Program.cs                  Entry point
+│   ├── Game1.cs                    Wiring: state machine, update and draw order
+│   ├── GameConstants.cs            Every tuning value and sprite sheet coordinate
+│   ├── Maths/
+│   │   └── MathUtils.cs            Distance, direction, dot, cross, lerp
+│   ├── Entities/
+│   │   ├── Player.cs               Movement, facing, animation, health
+│   │   ├── Enemy.cs                Steering, field of view, damage
+│   │   ├── EnemyKind.cs            Small / Big
+│   │   ├── Bullet.cs               Straight-line projectile
+│   │   └── Potion.cs               Pickup effects and magnet behaviour
+│   ├── Systems/
+│   │   ├── WeaponSystem.cs         Aim input, fire rate, bullet lifetime
+│   │   ├── CombatSystem.cs         All damage and scoring resolution
+│   │   ├── EnemySpawner.cs         Timed enemy spawning
+│   │   └── PotionSpawner.cs        Timed potion spawning
+│   ├── UI/
+│   │   ├── GameState.cs            Start / Playing / GameOver
+│   │   ├── StartScreen.cs          Title screen and controls
+│   │   ├── GameOverScreen.cs       Final score and restart prompt
+│   │   ├── Hud.cs                  Hearts and score, smoothed
+│   │   └── ScreenText.cs           Shared centred text drawing
+│   └── Content/                    Content.mgcb, font, 3 sprite sheets
+│
+├── MonoGameLibrary/                Core base class wrapping MonoGame setup
+│   └── core.cs
+│
+└── Game1.Tests/                    NUnit test project (10 tests)
 ```
 
-## Where the Required Mathematics Live
 
-| Concept | Where |
+## Testing
+
+The `Game1.Tests` project (NUnit 4.2.2) contains 10 tests covering business
+logic and mathematics rather than rendering:
+
+| Test | Area |
 |---|---|
-| Distance | `MathUtils.Distance`, `CollisionSystem.CirclesIntersect` (circle-circle overlap), `Enemy` detection radius check |
-| Direction & Vectors | `Player.HandleMovementInput`, `Enemy` chase direction, `Projectile` travel direction |
-| Algebra | `DifficultyManager` (spawn interval / stat scaling formulas), `ScoreSystem`, damage/heal clamping in `Player`/`Enemy` |
-| Dot Product | `MathUtils.IsWithinFieldOfView` — gates whether an enemy notices the player |
-| Cross Product | `MathUtils.TurnDirection` / `RotateTowardsUsingCross` — decides which way an enemy turns to face the player |
-| Lerp (4 uses) | Player velocity smoothing, HUD health-bar animation, screen fade-in transition, power-up glow colour pulse |
+| `Distance_ThreeFourFiveTriangle_ReturnsFive` | Distance calculation |
+| `IsWithinFieldOfView_TargetBehind_ReturnsFalse` | Dot product |
+| `Cross_TargetAnticlockwise_ReturnsNegative` | Cross product |
+| `Lerp_AmountAboveOne_IsClampedToEndValue` | Utility class, edge case |
+| `TakeDamage_MoreThanRemainingHealth_FloorsAtZero` | Health calculation, edge case |
+| `UpdateMovement_DiagonalIsNotFasterThanStraight` | Vector normalisation |
+| `Create_BigEnemy_IsTougherAndSlowerThanSmall` | Difficulty scaling |
+| `ResolveBulletHits_KillingBlow_RemovesEnemyAndAwardsScore` | Score calculation, collision |
+| `ResolveEnemyContact_EnemyOnCooldown_DealsNoDamage` | Collision, cooldown edge case |
+| `ResolvePotionPickups_HealthPotion_HealsPlayerAndIsRemoved` | Power-up effect |
 
-## Software Design Notes
+Tests never touch a `GraphicsDevice`, window or live keyboard state beyond
+`KeyboardState`, so they run identically on any machine.
 
-- **Entity** is an abstract base (position, collision radius, active flag)
-  shared by `Player`, `Enemy`, `Projectile` and `PowerUp` — new entity types
-  extend it without touching existing code (Open/Closed Principle).
-- **IDamageable / IMovable / ICollidable** decouple systems from concrete
-  types: `CollisionSystem` only ever talks to `ICollidable`, never to `Player`
-  or `Enemy` directly (Dependency Inversion).
-- **Systems are single-purpose**: `CollisionSystem` only detects overlaps,
-  `CombatSystem` only decides what happens when they occur, `ScoreSystem` only
-  tracks points, `DifficultyManager` only tracks the ramp. Each can be tested
-  and reasoned about independently (Single Responsibility).
-- **Player has no dependency on Keyboard/Mouse.** `Game1` reads input and
-  passes plain `Vector2`/`GameTime` values into `Player`, `Enemy`, etc. This
-  is what makes the game logic unit-testable without a running window or
-  GraphicsDevice.
-
-## Testing Strategy
-
-The `Dungeon Destroyer.Tests` project (NUnit) contains 40+ tests covering:
-
-- Pure math (`MathUtils`): distance, dot product, cross product, lerp, field-of-view and turn-direction checks.
-- Collision detection (`CollisionSystem`): overlapping, separated and exactly-touching circles.
-- Scoring (`ScoreSystem`): kill/power-up/survival-time scoring and input validation.
-- Difficulty scaling (`DifficultyManager`): the algebraic spawn-interval and stat-scaling formulas, including their floors/caps.
-- Player logic (`Player`): damage, healing, shield blocking, life/respawn handling, movement, and each timed power-up effect.
-- Enemy logic (`Enemy`/archetypes): damage/death, and the distinct speed/health/damage profiles of each archetype.
-- Power-ups: each concrete power-up's effect on the player.
-- Spawner logic (`EnemySpawner`): spawn timing and that spawn positions stay outside the arena.
-
-Tests avoid anything requiring a `GraphicsDevice`, window, or live keyboard —
-they exercise plain C# objects and `Vector2`/`GameTime` values so they run
-the same in CI as on a developer machine.
-
-Run them with `dotnet test` from the `Dungeon Destroyer.Tests` folder.
+Writing them found a real bug: when the player stood at exactly 180 degrees
+behind an enemy, the cross product returned zero, so the enemy never turned
+around and stood facing away permanently. `MathUtils.TurnToward` now defaults
+to one turn direction in that case.
